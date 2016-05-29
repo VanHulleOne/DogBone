@@ -18,10 +18,14 @@ def print_content():
 if __name__ == '__main__':    
     root = Tk()         #creates GUI
     root.title("3D Printer Parameter Setter")
-
-    e = Entry(root)
-    e.pack()
+    root.geometry("500x500+100+100")
     
+    labeltext = StringVar()
+    labeltext.set("Enter here")
+    label1 = Label(root, textvariable = labeltext, height = 4)
+    e = Entry(root, textvariable = labeltext)
+    label1.pack(side=LEFT)
+    e.pack(side=RIGHT)
     
     
     root.mainloop()    
