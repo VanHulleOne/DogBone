@@ -35,13 +35,16 @@ def save():
     data = {}
     for key in text_variable:
         data[key] = text_variable[key].get()
-    with open('data3.json', 'w') as fp:
+    with open('data4.json', 'w') as fp:
         json.dump(data, fp)
         
 def upload():
     global text_variable
-    with open('data.json', 'r') as fp:
-        text_variable = json.load(fp)
+    data = {}
+    with open('data3.json', 'r') as fp:
+        data = json.load(fp)
+    for key in data:
+        text_variable[key].set(data[key])
     
 #only works if program is used as the main program, not as a module    
 #if __name__ == '__main__':
@@ -140,6 +143,6 @@ root.geometry("400x500+100+100")
 set_labels(labels, all_text)
 set_entries(entries, all_text, defaults)
 buttonSave = Button(root,text="Save",command=save).grid(row=len(all_text),column=2)
-#buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(all_text),column=3)
+buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(all_text),column=3)
 
 root.mainloop()    
