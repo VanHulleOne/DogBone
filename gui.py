@@ -8,7 +8,7 @@ from tkinter import *    #GUI module
 import json
 
 #global variables 
-text_variable = {}
+text_variable = {} #dictionary with variable name as key and StringVar as value
 
 #methods
 def set_labels(all_labels, texts):
@@ -32,8 +32,16 @@ def set_entries(all_entries, texts, default_values):
     
 def save():
     global text_variable
-    with open('data.json', 'w') as fp:
-        json.dump(text_variable, fp)
+    data = {}
+    for key in text_variable:
+        data[key] = text_variable[key].get()
+    with open('data3.json', 'w') as fp:
+        json.dump(data, fp)
+        
+def upload():
+    global text_variable
+    with open('data.json', 'r') as fp:
+        text_variable = json.load(fp)
     
 #only works if program is used as the main program, not as a module    
 #if __name__ == '__main__':
@@ -132,5 +140,6 @@ root.geometry("400x500+100+100")
 set_labels(labels, all_text)
 set_entries(entries, all_text, defaults)
 buttonSave = Button(root,text="Save",command=save).grid(row=len(all_text),column=2)
+#buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(all_text),column=3)
 
 root.mainloop()    
