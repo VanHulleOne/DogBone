@@ -33,6 +33,9 @@ texts = ["outline", "solidityRatio", "printSpeed", "shiftX",                #par
          "outputFileName","start_Gcode_Filename", "end_Gcode_FileName",     #file parameters
          "currPath", "outputSubdirectory",                                  #file parameters
          "startEndSubDirectory"]                                            #file parameters
+         
+#array of Strings of the commonly used variables
+common_texts = ["outline", "printSpeed", "pattern"]
               
 #array of Strings of the default values
 defaults = ["ds.regularDogBone()", "[1.09]", "[2000]", "[10, 50]",                  #part parameters
@@ -50,14 +53,19 @@ defaults = ["ds.regularDogBone()", "[1.09]", "[2000]", "[10, 50]",              
             
 #initial creation of labels
 def set_labels():
-    global labels       #dictionary of labels
-    global texts        #array of variable names
+    global labels              #dictionary of labels
+    global texts               #array of variable names
+    global common_texts        #array of commonly used variable names
     
+    #create all labels
     for x in range(0, len(texts)):
         #create label
         labels[texts[x]] = Label(root, text=texts[x])
+        
+    #show commonly used variables
+    for x in range(0,len(common_texts)):
         #use grid() after creating label or dictionary value will be "NoneType"
-        labels[texts[x]].grid(row=x+1,column=0)   
+        labels[common_texts[x]].grid(row=x+1,column=0)   
         
     return   
         
@@ -66,17 +74,23 @@ def set_entries():
     global text_variable    #dictionary of StringVar() with default text as the value
     global entries          #dictionary of entries
     global texts            #array of variable names
+    global common_texts     #array of commonly used variable names
     global defaults         #array of default values
     
+    #create all StringVars
     for x in range(0, len(texts)):
         #set textvariable to StringVar with default text as value
         text_variable[texts[x]] = StringVar(root, value=defaults[x])
         
+    #create all entries
     for x in range(0, len(texts)):
         #create entry 
         entries[texts[x]] = Entry(root, textvariable=text_variable[texts[x]])
+        
+    #show commonly used variables
+    for x in range(0, len(common_texts)):
         #use grid() after creating entry or dictionary value will be "NoneType"
-        entries[texts[x]].grid(row=x+1,column=1)
+        entries[common_texts[x]].grid(row=x+1,column=1)
         
     return 
     
@@ -146,12 +160,27 @@ def upload_option():
 def use_all():
     global labels       #dictionary with labels as values
     global entries      #dictionary with entries as values
+    global texts        #array of variable names
     
     for x in range(0, len(labels)):
         labels[texts[x]].grid(row=x+1,column=0)    #show labels
-        entries[texts[x]].grid(row=x+1,column=2)   #show entries
+        entries[texts[x]].grid(row=x+1,column=1)   #show entries
         
     return
+    
+def use_common():
+    global labels               #dictionary with labels as values
+    global entries              #dictionary with entries as values
+    global texts                #dictionary of variable names
+    global common_texts         #array of commonly used variable names 
+    
+    for x in range(0,len(texts)):
+        labels[texts[x]].grid_forget()      #hide labels
+        entries[texts[x]].grid_forget()     #hide entries
+        
+    for x in range(0,len(common_texts)):
+        labels[common_texts[x]].grid(row=x+1,column=0)      #show labels
+        entries[common_texts[x]].grid(row=x+1,column=1)     #show entries
     
 #switch to tab with only part parameters
 def use_parts():
@@ -161,7 +190,7 @@ def use_parts():
     
     for x in range(0,9):
         labels[texts[x]].grid(row=x+1,column=0)   #show labels
-        entries[texts[x]].grid(row=x+1,column=2)  #show entries
+        entries[texts[x]].grid(row=x+1,column=1)  #show entries
         
     for x in range(9, len(texts)):
         labels[texts[x]].grid_forget()    #hide labels
@@ -177,7 +206,7 @@ def use_layers():
     
     for x in range(9,16):
         labels[texts[x]].grid(row=x+1,column=0)     #show labels
-        entries[texts[x]].grid(row=x+1,column=2)    #show entries
+        entries[texts[x]].grid(row=x+1,column=1)    #show entries
         
     for x in range(16, len(labels)):
         labels[texts[x]].grid_forget()      #hide labels
@@ -197,7 +226,7 @@ def use_files():
         
     for x in range(16,len(labels)):
         labels[texts[x]].grid(row=x+1,column=0)     #show labels
-        entries[texts[x]].grid(row=x+1,column=2)    #show entries
+        entries[texts[x]].grid(row=x+1,column=1)    #show entries
         
     for x in range(0,16):
         labels[texts[x]].grid_forget()      #hide labels
@@ -237,10 +266,11 @@ save_option()
 upload_option()
 
 #tab buttons (all parameters, part parameters, layer parameters, file parameters)
-buttonAll = Button(root,text="All",command=use_all).grid(row=0,column=0)
-buttonParts = Button(root,text="Parts",command=use_parts).grid(row=0,column=1)
-buttonLayers = Button(root,text="Layers",command=use_layers).grid(row=0,column=2)
-buttonFiles = Button(root,text="Files",command=use_files).grid(row=0,column=3)
+buttonCommon = Button(root,text="Common",command=use_common).grid(row=0,column=0)
+buttonAll = Button(root,text="All",command=use_all).grid(row=0,column=1)
+buttonParts = Button(root,text="Parts",command=use_parts).grid(row=0,column=2)
+buttonLayers = Button(root,text="Layers",command=use_layers).grid(row=0,column=3)
+buttonFiles = Button(root,text="Files",command=use_files).grid(row=0,column=4)
 
 #keeps GUI open, always necessary
 root.mainloop() 
