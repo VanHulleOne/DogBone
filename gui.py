@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat May 28 16:39:58 2016
-@author: alexd
+@author: Alex Diebold
 """
 
 from tkinter import *    #GUI module
@@ -10,12 +10,6 @@ import json
 ##################
 #global variables#
 ##################
-
-#name of JSON file to be saved
-textSave = StringVar(root)
-
-#name of JSON file to be uploaded
-textUpload = StringVar(root)
 
 #dictionary with variable name as key and StringVar as value
 text_variable = {} 
@@ -90,10 +84,14 @@ def set_entries():
 def save():
     global text_variable    #dictionary of StringVar with current values from user
     global textSave         #StringVar with name to save JSON file as
-    filename = textSave + ".json"    #adds .json to name
+    data = {}               #dictionary to put String value of StringVar values in
+    filename = textSave.get() + ".json"    #adds .json to name
+    
+    for key in text_variable:
+        data[key] = text_variable[key].get()
     
     with open(filename, 'w') as fp:
-        json.dump(text_variable, fp)    #save JSON file
+        json.dump(data, fp)    #save JSON file
         
     return 
 
@@ -102,7 +100,7 @@ def upload():
     global text_variable    #dictionary of StringVar of the entry values
     global textUpload       #StringBar with name of JSON file to upload
     data = {}               #new dictionary that will be replaced with dictionary from JSON file
-    filename = textUpload + ".json"     #adds .json to name
+    filename = textUpload.get() + ".json"     #adds .json to name
     
     with open(filename, 'r') as fp:
         data = json.load(fp)    #upload JSON file
@@ -111,6 +109,38 @@ def upload():
         text_variable[key].set(data[key])   #replace current StringVar values with data from JSON file
         
     return
+    
+#creates label, entry, and button for saving all values
+def save_option():
+    global textSave     #StringVar with name to save JSON file as
+    global texts        #array of variable names, only needed to reference length
+    
+    #create label
+    labelSave = Label(root, text="Enter filename to save as (no .json):")
+    labelSave.grid(row=len(texts)+1,column=0)
+    
+    #create entry
+    entrySave = Entry(root, textvariable=textSave)
+    entrySave.grid(row=len(texts)+1,column=1)
+    
+    #create button
+    buttonSave = Button(root,text="Save",command=save).grid(row=len(texts)+1,column=2)
+
+#creates label, entry, and button for uploading all values    
+def upload_option():
+    global textUpload   #StringVar with name to save JSON file as
+    global texts        #array of variable names, only needed to reference length
+    
+    #create label
+    labelUpload = Label(root, text="Enter filename to upload (no .json):")
+    labelUpload.grid(row=len(texts)+2,column=0)
+    
+    #create entry
+    entryUpload = Entry(root, textvariable=textUpload)
+    entryUpload.grid(row=len(texts)+2,column=1)
+    
+    #create button
+    buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(texts)+2,column=2)
     
 #switch to tab with all parameters    
 def use_all():
@@ -175,38 +205,6 @@ def use_files():
     
     return
     
-#creates label, entry, and button for saving all values
-def save_option():
-    global textSave     #StringVar with name to save JSON file as
-    global texts        #array of variable names, only needed to reference length
-    
-    #create label
-    labelSave = Label(root, text="Enter filename to save as (no .json):")
-    labelSave.grid(row=len(texts)+1,column=0)
-    
-    #create entry
-    entrySave = Entry(root, textvariable=textSave)
-    entrySave.grid(row=len(texts)+1,column=1)
-    
-    #create button
-    buttonSave = Button(root,text="Save",command=save).grid(row=len(texts)+1,column=2)
-
-#creates label, entry, and button for uploading all values    
-def upload_option():
-    global textUpload   #StringVar with name to save JSON file as
-    global texts        #array of variable names, only needed to reference length
-    
-    #create label
-    labelUpload = Label(root, text="Enter filename to upload (no .json):")
-    labelUpload.grid(row=len(texts)+2,column=0)
-    
-    #create entry
-    entryUpload = Entry(root, textvariable=textUpload)
-    entryUpload.grid(row=len(texts)+2,column=1)
-    
-    #create button
-    buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(texts)+2,column=2)
-    
 #only works if program is used as the main program, not as a module    
 #if __name__ == '__main__':
 
@@ -221,6 +219,12 @@ root = Tk()
 root.title("3D Printer Parameter Setter")
 #format window size -- width=400, height=500, 100px from left of screen, 100px from top of screen
 root.geometry("500x550+100+100")
+
+#name of JSON file to be saved
+textSave = StringVar(root)
+
+#name of JSON file to be uploaded
+textUpload = StringVar(root)
 
 #initial creation of labels and entries
 set_labels()
