@@ -4,9 +4,10 @@ Created on Sat May 28 16:39:58 2016
 @author: Alex Diebold
 """
 
-from tkinter import *    #GUI module
-from tkinter import filedialog
-import json
+from tkinter import *               #GUI module
+from tkinter import filedialog      #window for saving and uploading files
+import json                         #for saving and uploading files
+from parameters import param        #for converting to Gcode
 
 #########################
 #   global variables    #
@@ -328,6 +329,9 @@ def convert():
     
     #save file
     save()
+    
+    conversion = param(filename)
+    conversion.run()
     
     
 #only works if program is used as the main program, not as a module    
