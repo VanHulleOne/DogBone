@@ -7,9 +7,9 @@ Created on Sat May 28 16:39:58 2016
 from tkinter import *    #GUI module
 import json
 
-##################
-#global variables#
-##################
+#########################
+#   global variables    #
+#########################
 
 #dictionary with variable name as key and StringVar as value
 text_variable = {} 
@@ -26,10 +26,10 @@ entries = {}
 
 #array of Strings of the variables
 texts = ["outline", "solidityRatio", "printSpeed", "shiftX",                #part parameters
-         "shiftY", "firstLayerShiftZ", "numLayers",  "trimAdjust",          #part parameters
-         "pattern", "designType"                                            #part parameters
+         "shiftY", "firstLayerShiftZ", "numLayers",                         #part parameters
+         "pattern", "designType",                                            #part parameters
          "inFillAngleDegrees", "pathWidth", "layerHeight",                  #layer parameters
-         "inFillShiftX", "inFillShiftY", "numShells",                       #layer parameters
+         "inFillShiftX", "inFillShiftY", "numShells", "trimAdjust",         #layer parameters
          "outputFileName","start_Gcode_Filename", "end_Gcode_FileName",     #file parameters
          "currPath", "outputSubdirectory",                                  #file parameters
          "startEndSubDirectory"]                                            #file parameters
@@ -38,19 +38,20 @@ texts = ["outline", "solidityRatio", "printSpeed", "shiftX",                #par
 common_texts = ["outline", "printSpeed", "pattern"]
               
 #array of Strings of the default values
-defaults = ["ds.regularDogBone()", "[1.09]", "[2000]", "[10, 50]",                  #part parameters
-            "[10, 35, 60]", "0", "[8]", "[2*c.EPSILON]",                            #part parameters
+defaults = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                    #part parameters
+            "10, 35, 60", "0", "8",                                             #part parameters
             "None", "0",                                                            #part parameters
-            "[0, -45, 90, 45, 45, 90, -45]", "[0.5]", "[0.4]",                      #layer parameters
-            "[0]", "[0]", "[13,1,1,0,0,1,1]",                                       #layer parameters
+            "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                      #layer parameters
+            "0", "0", "13,1,1,0,0,1,1", "2*c.EPSILON",                      #layer parameters
             "'ZigZag.gcode'", "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'",    #file parameters
             "os.path.dirname(os.path.realpath(__file__))", "currPath + '\\Gcode'",  #file parameters
-            "currPath + '\\Start_End_Gcode'"]                                       #file parameters
-            
-#########
-#methods#
-#########
-            
+            "currPath + '\\Start_End_Gcode'"]                                       #file parameters    
+         
+          
+##########################################################
+#   methods that create labels, entries, and/or buttons  #
+##########################################################
+          
 #initial creation of labels
 def set_labels():
     global labels              #dictionary of labels
@@ -94,36 +95,6 @@ def set_entries():
         
     return 
     
-#saves the dictionary of the StringVars to a JSON file    
-def save():
-    global text_variable    #dictionary of StringVar with current values from user
-    global textSave         #StringVar with name to save JSON file as
-    data = {}               #dictionary to put String value of StringVar values in
-    filename = textSave.get() + ".json"    #adds .json to name
-    
-    for key in text_variable:
-        data[key] = text_variable[key].get()
-    
-    with open(filename, 'w') as fp:
-        json.dump(data, fp)    #save JSON file
-        
-    return 
-
-#uploads dictionary from JSON file to replace current StringVar values       
-def upload():
-    global text_variable    #dictionary of StringVar of the entry values
-    global textUpload       #StringBar with name of JSON file to upload
-    data = {}               #new dictionary that will be replaced with dictionary from JSON file
-    filename = textUpload.get() + ".json"     #adds .json to name
-    
-    with open(filename, 'r') as fp:
-        data = json.load(fp)    #upload JSON file
-        
-    for key in data:
-        text_variable[key].set(data[key])   #replace current StringVar values with data from JSON file
-        
-    return
-    
 #creates label, entry, and button for saving all values
 def save_option():
     global textSave     #StringVar with name to save JSON file as
@@ -155,6 +126,124 @@ def upload_option():
     
     #create button
     buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(texts)+2,column=2)
+    
+#create menu of label and buttons to switch between tabs
+def tab_buttons():
+    
+    #button to display commonly used variables
+    buttonCommon = Button(root,text="Common",command=use_common)
+    buttonCommon.grid(row=0,column=0)
+    #button to display all variables
+    buttonAll = Button(root,text="All",command=use_all)
+    buttonAll.grid(row=0,column=1)
+    
+    #label for parameters
+    labelParameters = Label(root,text="Parameters")
+    labelParameters.grid(row=0,column=2)
+    #button to display part parameters
+    buttonParts = Button(root,text="Parts",command=use_parts)
+    buttonParts.grid(row=1,column=2)
+    #button to display layer parameters
+    buttonLayers = Button(root,text="Layers",command=use_layers)
+    buttonLayers.grid(row=2,column=2)
+    #button to display file parameters
+    buttonFiles = Button(root,text="Files",command=use_files).grid(row=3,column=2)
+    
+#create label and buttons for different preset values of parameters
+def presets():
+    
+    #label for presets
+    labelPresets = Label(root,text="Presets").grid(row=0,column=3)
+    #button for dogbone
+    buttonDogbone = Button(root,text="Dogbone",command=dogbone)
+    buttonDogbone.grid(row=1,column=3)
+
+    
+    
+#############################################
+#   methods that are called from buttons    #
+#############################################
+    
+#saves the dictionary of the StringVars to a JSON file    
+def save():
+    global text_variable    #dictionary of StringVar with current values from user
+    global textSave         #StringVar with name to save JSON file as
+    data = {}               #dictionary to put String value of StringVar values in
+    filename = textSave.get() + ".json"    #adds .json to name
+    to_string = ["outline", "outputFileName", "start_Gcode_Filename",   #variables with type String
+                 "end_Gcode_Filename", "currPath", "outputSubdirectory"
+                 "startEndSubDirectory"]
+    to_int = ["designType", "firstLayerShiftZ"]           #variables with type int
+    to_string_array = ["trimAdjust"]                      #variables with type String that go in an array
+    to_int_array = ["printSpeed", "shiftX", "shiftY",     #variables with type int that go in an array
+                    "numLayers", "inFillAngleDegrees"
+                    "inFillShiftX", "inFillShiftY", "numShells"]
+    to_float_array = ["solidityRatio", "pathWidth",      #variables with type double that go in an array
+                       "layerHeight"]
+    to_none = ["pattern"]                                 #variables with type None
+    
+    for key in text_variable:
+        if key in to_string:
+            data[key] = text_variable[key].get()
+        elif key in to_int:
+            data[key] = int(text_variable[key].get())   #converts value to int
+        elif key in to_none:
+            data[key] = None                            #converts value to None
+        elif key in to_string_array:
+            temp = []                                   #creates empty array
+            value = text_variable[key].get()            #sets the value to a variable
+            if " " in value:
+                value = value.replace(" ", ",")                 #replaces spaces with commas
+            if ",," in value:
+                value = value.replace(",,", ",")                #replaces double commas with single commas
+            temp = value.split(",")                     #creates list split by commas
+            data[key] = temp                            #saves list
+        elif key in to_int_array:
+            temp = []
+            value = text_variable[key].get()
+            if " " in value:
+                value = value.replace(" ", ",")
+            if ",," in value:
+                value = value.replace(",,", ",")
+            temp = value.split(",")
+            temp = [int(i) for i in temp]               #converts values in list to int before saving
+            data[key] = temp
+        elif key in to_float_array:
+            temp = []
+            value = text_variable[key].get()
+            if " " in value:
+                value = value.replace(" ", ",")
+            if ",," in value:
+                value = value.replace(",,", ",")
+            temp = value.split(",")
+            temp = [float(i) for i in temp]             #converts values in list to float before saving
+            data[key] = temp
+            
+    with open(filename, 'w') as fp:
+        json.dump(data, fp)    #save JSON file
+        
+    return
+
+#uploads dictionary from JSON file to replace current StringVar values       
+def upload():
+    global text_variable    #dictionary of StringVar of the entry values
+    global textUpload       #StringBar with name of JSON file to upload
+    data = {}               #new dictionary that will be replaced with dictionary from JSON file
+    filename = textUpload.get() + ".json"     #adds .json to name
+    
+    with open(filename, 'r') as fp:
+        data = json.load(fp)    #upload JSON file
+        
+    for key in data:
+        if data[key] == None:
+            text_variable[key].set("None") #replace current StringVar with String "None"
+        else:
+            value = str(data[key])
+            value = value.replace("[","")
+            value = value.replace("]","")
+            text_variable[key].set(value)   #replace current StringVar values with data from JSON file
+        
+    return
     
 #switch to tab with all parameters    
 def use_all():
@@ -205,8 +294,8 @@ def use_layers():
     global texts        #array of variable names
     
     for x in range(9,16):
-        labels[texts[x]].grid(row=x+1,column=0)     #show labels
-        entries[texts[x]].grid(row=x+1,column=1)    #show entries
+        labels[texts[x]].grid(row=x-8,column=0)     #show labels
+        entries[texts[x]].grid(row=x-8,column=1)    #show entries
         
     for x in range(16, len(labels)):
         labels[texts[x]].grid_forget()      #hide labels
@@ -225,8 +314,8 @@ def use_files():
     global texts        #array of variable names
         
     for x in range(16,len(labels)):
-        labels[texts[x]].grid(row=x+1,column=0)     #show labels
-        entries[texts[x]].grid(row=x+1,column=1)    #show entries
+        labels[texts[x]].grid(row=x-15,column=0)     #show labels
+        entries[texts[x]].grid(row=x-15,column=1)    #show entries
         
     for x in range(0,16):
         labels[texts[x]].grid_forget()      #hide labels
@@ -234,20 +323,39 @@ def use_files():
     
     return
     
+#change values to dogbone preset    
+def dogbone():
+    global texts            #array of variable names
+    global text_variable    #dictionary with StringVar as values
+    
+    dogbone_data = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                #part parameters
+            "10, 35, 60", "0", "8",                                                 #part parameters
+            "None", "0",                                                            #part parameters
+            "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                            #layer parameters
+            "0", "0", "13,1,1,0,0,1,1",  "2*c.EPSILON",                             #layer parameters
+            "'ZigZag.gcode'", "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'",    #file parameters
+            "os.path.dirname(os.path.realpath(__file__))", "currPath + '\\Gcode'",  #file parameters
+            "currPath + '\\Start_End_Gcode'"]                                       #file parameters
+            
+    for x in range(0,len(texts)):
+        text_variable[texts[x]].set(dogbone_data[x])        #change values to dogbone values
+    
+    
 #only works if program is used as the main program, not as a module    
 #if __name__ == '__main__':
+    
 
-##############
-#GUI creation#
-##############
+#####################
+#   GUI creation    #
+#####################
 
 #create window    
 root = Tk()
 
 #set window title
 root.title("3D Printer Parameter Setter")
-#format window size -- width=400, height=500, 100px from left of screen, 100px from top of screen
-root.geometry("500x550+100+100")
+#format window size -- width=500, height=575, 100px from left of screen, 100px from top of screen
+root.geometry("500x575+100+100")
 
 #name of JSON file to be saved
 textSave = StringVar(root)
@@ -265,12 +373,11 @@ save_option()
 #set up upload option
 upload_option()
 
-#tab buttons (all parameters, part parameters, layer parameters, file parameters)
-buttonCommon = Button(root,text="Common",command=use_common).grid(row=0,column=0)
-buttonAll = Button(root,text="All",command=use_all).grid(row=0,column=1)
-buttonParts = Button(root,text="Parts",command=use_parts).grid(row=0,column=2)
-buttonLayers = Button(root,text="Layers",command=use_layers).grid(row=0,column=3)
-buttonFiles = Button(root,text="Files",command=use_files).grid(row=0,column=4)
+#tab buttons (commonly used, all, part, layer, and file parameters)
+tab_buttons()
+
+#preset buttons (dogbone)
+presets()
 
 #keeps GUI open, always necessary
 root.mainloop() 
