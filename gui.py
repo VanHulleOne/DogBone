@@ -5,11 +5,15 @@ Created on Sat May 28 16:39:58 2016
 """
 
 from tkinter import *    #GUI module
+from tkinter import filedialog
 import json
 
 #########################
 #   global variables    #
 #########################
+
+#string that is the filename of the current file
+filename = ""
 
 #dictionary with variable name as key and StringVar as value
 text_variable = {} 
@@ -27,25 +31,22 @@ entries = {}
 #array of Strings of the variables
 texts = ["outline", "solidityRatio", "printSpeed", "shiftX",                #part parameters
          "shiftY", "firstLayerShiftZ", "numLayers",                         #part parameters
-         "pattern", "designType",                                            #part parameters
+         "pattern", "designType",                                           #part parameters
          "inFillAngleDegrees", "pathWidth", "layerHeight",                  #layer parameters
          "inFillShiftX", "inFillShiftY", "numShells", "trimAdjust",         #layer parameters
-         "outputFileName","start_Gcode_Filename", "end_Gcode_FileName",     #file parameters
-         "currPath", "outputSubdirectory",                                  #file parameters
-         "startEndSubDirectory"]                                            #file parameters
+         "start_Gcode_Filename", "end_Gcode_FileName"]                      #file parameters
          
 #array of Strings of the commonly used variables
-common_texts = ["outline", "printSpeed", "pattern"]
+common_texts = ["outline", "solidityRatio", "printSpeed", 
+                "shiftX", "shiftY", "pattern", "numShells"]
               
 #array of Strings of the default values
-defaults = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                    #part parameters
-            "10, 35, 60", "0", "8",                                             #part parameters
-            "None", "0",                                                            #part parameters
-            "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                      #layer parameters
+defaults = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                #part parameters
+            "10, 35, 60", "0", "8",                                         #part parameters
+            "None", "0",                                                    #part parameters
+            "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                    #layer parameters
             "0", "0", "13,1,1,0,0,1,1", "2*c.EPSILON",                      #layer parameters
-            "'ZigZag.gcode'", "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'",    #file parameters
-            "os.path.dirname(os.path.realpath(__file__))", "currPath + '\\Gcode'",  #file parameters
-            "currPath + '\\Start_End_Gcode'"]                                       #file parameters    
+            "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'"]              #file parameters
          
           
 ##########################################################
@@ -95,59 +96,37 @@ def set_entries():
         
     return 
     
-#creates label, entry, and button for saving all values
-def save_option():
-    global textSave     #StringVar with name to save JSON file as
-    global texts        #array of variable names, only needed to reference length
-    
-    #create label
-    labelSave = Label(root, text="Enter filename to save as (no .json):")
-    labelSave.grid(row=len(texts)+1,column=0)
-    
-    #create entry
-    entrySave = Entry(root, textvariable=textSave)
-    entrySave.grid(row=len(texts)+1,column=1)
-    
+#creates button for saving all values
+def save_option(): 
     #create button
-    buttonSave = Button(root,text="Save",command=save).grid(row=len(texts)+1,column=2)
+    buttonSave = Button(root,text="Save (exclude .json)",command=save).grid(row=0,column=1)
 
 #creates label, entry, and button for uploading all values    
-def upload_option():
-    global textUpload   #StringVar with name to save JSON file as
-    global texts        #array of variable names, only needed to reference length
-    
-    #create label
-    labelUpload = Label(root, text="Enter filename to upload (no .json):")
-    labelUpload.grid(row=len(texts)+2,column=0)
-    
-    #create entry
-    entryUpload = Entry(root, textvariable=textUpload)
-    entryUpload.grid(row=len(texts)+2,column=1)
-    
+def upload_option():   
     #create button
-    buttonUpload = Button(root,text="Upload",command=upload).grid(row=len(texts)+2,column=2)
+    buttonUpload = Button(root,text="Upload",command=upload).grid(row=0,column=0)
     
 #create menu of label and buttons to switch between tabs
 def tab_buttons():
     
-    #button to display commonly used variables
-    buttonCommon = Button(root,text="Common",command=use_common)
-    buttonCommon.grid(row=0,column=0)
-    #button to display all variables
-    buttonAll = Button(root,text="All",command=use_all)
-    buttonAll.grid(row=0,column=1)
-    
     #label for parameters
     labelParameters = Label(root,text="Parameters")
     labelParameters.grid(row=0,column=2)
+    
+    #button to display all variables
+    buttonAll = Button(root,text="All",command=use_all)
+    buttonAll.grid(row=1,column=2)
+    #button to display commonly used variables
+    buttonCommon = Button(root,text="Common",command=use_common)
+    buttonCommon.grid(row=2,column=2)
     #button to display part parameters
     buttonParts = Button(root,text="Parts",command=use_parts)
-    buttonParts.grid(row=1,column=2)
+    buttonParts.grid(row=3,column=2)
     #button to display layer parameters
     buttonLayers = Button(root,text="Layers",command=use_layers)
-    buttonLayers.grid(row=2,column=2)
+    buttonLayers.grid(row=4,column=2)
     #button to display file parameters
-    buttonFiles = Button(root,text="Files",command=use_files).grid(row=3,column=2)
+    buttonFiles = Button(root,text="Files",command=use_files).grid(row=5,column=2)
     
 #create label and buttons for different preset values of parameters
 def presets():
@@ -158,8 +137,14 @@ def presets():
     buttonDogbone = Button(root,text="Dogbone",command=dogbone)
     buttonDogbone.grid(row=1,column=3)
 
+#create button to convert to Gcode
+def gcode():
+    global texts        #array of variable names, only used to reference length
     
-    
+    buttonGcode = Button(root,text="Convert to Gcode",command=convert)
+    buttonGcode.grid(row=len(texts)+1,column=1)
+
+        
 #############################################
 #   methods that are called from buttons    #
 #############################################
@@ -167,12 +152,12 @@ def presets():
 #saves the dictionary of the StringVars to a JSON file    
 def save():
     global text_variable    #dictionary of StringVar with current values from user
-    global textSave         #StringVar with name to save JSON file as
+    global filename         #string of the name to save the file as
     data = {}               #dictionary to put String value of StringVar values in
-    filename = textSave.get() + ".json"    #adds .json to name
-    to_string = ["outline", "outputFileName", "start_Gcode_Filename",   #variables with type String
-                 "end_Gcode_Filename", "currPath", "outputSubdirectory"
-                 "startEndSubDirectory"]
+    filename = filedialog.asksaveasfilename()   #creates window to get filename
+    filename = filename + ".json"               #adds .json to name
+    to_string = ["outline", "start_Gcode_Filename",       #variables with type String
+                 "end_Gcode_Filename"]
     to_int = ["designType", "firstLayerShiftZ"]           #variables with type int
     to_string_array = ["trimAdjust"]                      #variables with type String that go in an array
     to_int_array = ["printSpeed", "shiftX", "shiftY",     #variables with type int that go in an array
@@ -223,15 +208,14 @@ def save():
         json.dump(data, fp)    #save JSON file
         
     return
-
-#uploads dictionary from JSON file to replace current StringVar values       
+    
+#uploads dictionary from JSON file to replace current StringVar values, opens window to find file       
 def upload():
     global text_variable    #dictionary of StringVar of the entry values
-    global textUpload       #StringBar with name of JSON file to upload
     data = {}               #new dictionary that will be replaced with dictionary from JSON file
-    filename = textUpload.get() + ".json"     #adds .json to name
+    uploadname = filedialog.askopenfilename()     #creates window to find file
     
-    with open(filename, 'r') as fp:
+    with open(uploadname, 'r') as fp:
         data = json.load(fp)    #upload JSON file
         
     for key in data:
@@ -334,11 +318,16 @@ def dogbone():
             "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                            #layer parameters
             "0", "0", "13,1,1,0,0,1,1",  "2*c.EPSILON",                             #layer parameters
             "'ZigZag.gcode'", "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'",    #file parameters
-            "os.path.dirname(os.path.realpath(__file__))", "currPath + '\\Gcode'",  #file parameters
-            "currPath + '\\Start_End_Gcode'"]                                       #file parameters
+            "currPath + '\\Gcode'", "currPath + '\\Start_End_Gcode'"]               #file parameters
             
     for x in range(0,len(texts)):
         text_variable[texts[x]].set(dogbone_data[x])        #change values to dogbone values
+        
+def convert():
+    global filename    #string of name to save file as
+    
+    #save file
+    save()
     
     
 #only works if program is used as the main program, not as a module    
@@ -354,14 +343,8 @@ root = Tk()
 
 #set window title
 root.title("3D Printer Parameter Setter")
-#format window size -- width=500, height=575, 100px from left of screen, 100px from top of screen
-root.geometry("500x575+100+100")
-
-#name of JSON file to be saved
-textSave = StringVar(root)
-
-#name of JSON file to be uploaded
-textUpload = StringVar(root)
+#format window size -- width=500, height=600, 100px from left of screen, 100px from top of screen
+root.geometry("500x475+100+100")
 
 #initial creation of labels and entries
 set_labels()
@@ -378,6 +361,9 @@ tab_buttons()
 
 #preset buttons (dogbone)
 presets()
+
+#convert to Gcode button
+gcode()
 
 #keeps GUI open, always necessary
 root.mainloop() 

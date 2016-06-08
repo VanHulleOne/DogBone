@@ -1,0 +1,1 @@
+{"firstLayerShiftZ": 3, "shiftY": [3, 1, 4], "pathWidth": [3.14], "layerHeight": [0.4], "solidityRatio": [3.14], "inFillShiftY": [0], "numShells": [13, 1, 1, 0, 0, 1, 1], "outline": "ds.regularDogBone()", "shiftX": [3, 4], "numLayers": [1], "printSpeed": [314], "trimAdjust": ["2*c.EPSILON"], "pattern": null, "start_Gcode_Filename": "'Start_Gcodee_Taz5.txt'", "designType": 4}
