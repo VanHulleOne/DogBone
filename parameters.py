@@ -78,9 +78,11 @@ class Parameters:
     
     def __init__(self, parameter):
         with open(parameter, 'r') as fp:
-            data = json.load(fp)
-            
-    
+            data = json.load(fp)           
+        for key in data:
+            print(key)
+            setattr(self, key, data[key])
+        
     def zipVariables_gen(inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):
             # Tests if inputLists is a generator
@@ -97,10 +99,7 @@ class Parameters:
                 except Exception:
                     yield iterType(list(map(next, variableGenerators)))
             if not repeat:
-                break
-    
-    for key, value in data.items():
-            setattr(self, key, value)    
+                break    
     
     LayerParams = namedtuple('LayerParams', 'infillShiftX infillShiftY infillAngle \
                                             numShells layerHeight pathWidth trimAdjust')            

@@ -35,7 +35,7 @@ texts = ["outline", "solidityRatio", "printSpeed", "shiftX",                #par
          "pattern", "designType",                                           #part parameters
          "inFillAngleDegrees", "pathWidth", "layerHeight",                  #layer parameters
          "inFillShiftX", "inFillShiftY", "numShells", "trimAdjust",         #layer parameters
-         "start_Gcode_Filename", "end_Gcode_FileName"]                      #file parameters
+         "start_Gcode_FileName", "end_Gcode_FileName"]                      #file parameters
          
 #array of Strings of the commonly used variables
 common_texts = ["outline", "solidityRatio", "printSpeed", 
@@ -157,8 +157,7 @@ def save():
     data = {}               #dictionary to put String value of StringVar values in
     filename = filedialog.asksaveasfilename()   #creates window to get filename
     filename = filename + ".json"               #adds .json to name
-    to_string = ["outline", "start_Gcode_Filename",       #variables with type String
-                 "end_Gcode_Filename"]
+    to_string = ["outline", "start_Gcode_FileName", "end_Gcode_FileName"]      #variables with type String                
     to_int = ["designType", "firstLayerShiftZ"]           #variables with type int
     to_string_array = ["trimAdjust"]                      #variables with type String that go in an array
     to_int_array = ["printSpeed", "shiftX", "shiftY",     #variables with type int that go in an array
@@ -169,6 +168,7 @@ def save():
     to_none = ["pattern"]                                 #variables with type None
     
     for key in text_variable:
+        print("*********" + key)
         if key in to_string:
             data[key] = text_variable[key].get()
         elif key in to_int:
