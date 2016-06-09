@@ -17,6 +17,7 @@ import itertools
 import os
 import numpy as np
 import json
+import gcode
 
 class Parameters:
     
@@ -80,8 +81,21 @@ class Parameters:
         with open(parameter, 'r') as fp:
             data = json.load(fp)           
         for key in data:
-            print(key)
             setattr(self, key, data[key])
+        data["outputFileName"] = 'ZigZag.gcode'
+        data["currPath"] = os.path.dirname(os.path.realpath(__file__))
+        data["outputSubDirectory"] = self.currPath + '\\Gcode'
+        data["startEndSubDirectory"] = self.currPath + '\\Start_End_Gcode'
+        data["filamentDiameter"] = 3.0
+        data["filamentArea"] = math.pi*self.filamentDiameter**2/4.0
+        data["nozzleDiameter"] = 0.5
+        data["RAPID"] = 4000
+        data["TRAVERSE_RETRACT"] = 0.5
+        data["MAX_FEED_TRAVERSE"] = 10
+        data["MAX_EXTRUDE_SPEED"] = 100
+        data["Z_CLEARANCE"] = 10.0
+        data["APPROACH_FR"] = 1500
+        g_code = gcode.Gcode(data)
         
     def zipVariables_gen(inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):
@@ -118,7 +132,7 @@ class Parameters:
         startTime = time.time()
         print('\nGenerating code, please wait...')
         
-        fig = fg.Figura(self.outline)
+        fig = fg.Figura(self.outline, self.data)
         
         with open(self.outputSubDirectory+'\\'+self.outputFileName, 'w') as f:      
             for string in fig.masterGcode_gen():
@@ -150,7 +164,7 @@ class Parameters:
      
                               
 if __name__ == '__main__':
-    param.run()
+    Parameters.run()
     
  
     

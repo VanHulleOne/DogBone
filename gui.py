@@ -168,7 +168,6 @@ def save():
     to_none = ["pattern"]                                 #variables with type None
     
     for key in text_variable:
-        print("*********" + key)
         if key in to_string:
             data[key] = text_variable[key].get()
         elif key in to_int:

@@ -26,8 +26,8 @@ to avoid having inaccurate comments.
 @author: lvanhulle
 """
 
-import gcode as gc
-import parameters as pr
+import gcode
+import parameters
 import Point as p
 import InFill as InF
 import LineGroup as lg
@@ -35,8 +35,10 @@ import constants as c
 from Shape import Shape
 
 class Figura:  
+
+    data = {}    
     
-    def __init__(self, shape):
+    def __init__(self, shape, param):
         self.shape = shape
 #        startTime = time.time()
 #        layer = self.organizedLayer(inShapes)
@@ -47,13 +49,16 @@ class Figura:
 #            f.write(layer.CSVstr())
         
         self.partCount = 1 # The current part number
-
+        self.data = param
         self.layers = {}
         """ The dictionary which stores the computed layers. The key is created in
         layer_gen(). """
+    
+    gc = gcode.Gcode(data)
+    pr = parameters.Parameters(data)
         
     def masterGcode_gen(self):
-        yield gc.startGcode()
+        yield self.gc.startGcode()
         for partParams in pr.everyPartsParameters:
             """ pr.everyPartsParameters is a generator of the parameters for the parts.
             The generator stops yielding additional parameters when there are no
@@ -71,7 +76,7 @@ class Figura:
             yield from self.partGcode_gen(partParams)
                 
             self.partCount += 1
-        yield gc.endGcode()
+        yield self.gc.endGcode()
 
     def layer_gen(self, partParams):
         """ Creates and yields each organized layer for the part.
