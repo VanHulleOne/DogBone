@@ -18,7 +18,7 @@ import os
 import numpy as np
 import json
 
-class param:
+class Parameters:
     
     
 
@@ -49,36 +49,37 @@ class param:
     numShells = [13,1,1,0,0,1,1] # the number of shells max is 13 if 0.4999 path width is used
     trimAdjust = [2*c.EPSILON]
     
+    """
+    File Parameters
+    """
+    outputFileName = 'ZigZag.gcode' #the name of the file you want output. git will ignore all .gcode unless they start with SAVE
+    currPath = os.path.dirname(os.path.realpath(__file__))
+    outputSubDirectory = currPath + '\\Gcode'
+    startEndSubDirectory = currPath + '\\Start_End_Gcode'
+
+    """
+    Misc Parameters
+    """
+    filamentDiameter = 3.0 #mm dia of incoming filament
+    filamentArea = math.pi*filamentDiameter**2/4.0
+    nozzleDiameter = 0.5 #mm                                                   
+       
+    """
+    Standard printing settings
+    """
+    RAPID = 4000 #mm/min
+    TRAVERSE_RETRACT = 0.5 #mm of filament to retract when traversing longer distances
+    MAX_FEED_TRAVERSE = 10 # max mm to move without lifting the head
+    MAX_EXTRUDE_SPEED = 100 #mm/min max speed to move filament
+    Z_CLEARANCE = 10.0 #mm to move Z up
+    APPROACH_FR = 1500 #mm/min aproach feedrate
+    
     data = {}
     
     def __init__(self, parameter):
         with open(parameter, 'r') as fp:
             data = json.load(fp)
             
-        """
-        File Parameters
-        """
-        self.outputFileName = 'ZigZag.gcode' #the name of the file you want output. git will ignore all .gcode unless they start with SAVE
-        self.currPath = os.path.dirname(os.path.realpath(__file__))
-        self.outputSubDirectory = self.currPath + '\\Gcode'
-        self.startEndSubDirectory = self.currPath + '\\Start_End_Gcode'
-        
-        """
-        Misc Parameters
-        """
-        self.filamentDiameter = 3.0 #mm dia of incoming filament
-        self.filamentArea = math.pi*self.filamentDiameter**2/4.0
-        self.nozzleDiameter = 0.5 #mm                                                   
-           
-        """
-        Standard printing settings
-        """
-        self.RAPID = 4000 #mm/min
-        self.TRAVERSE_RETRACT = 0.5 #mm of filament to retract when traversing longer distances
-        self.MAX_FEED_TRAVERSE = 10 # max mm to move without lifting the head
-        self.MAX_EXTRUDE_SPEED = 100 #mm/min max speed to move filament
-        self.Z_CLEARANCE = 10.0 #mm to move Z up
-        self.APPROACH_FR = 1500 #mm/min aproach feedrate
     
     def zipVariables_gen(inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):

@@ -7,7 +7,7 @@ Created on Sat May 28 16:39:58 2016
 from tkinter import *               #GUI module
 from tkinter import filedialog      #window for saving and uploading files
 import json                         #for saving and uploading files
-from parameters import param        #for converting to Gcode
+from parameters import Parameters        #for converting to Gcode
 
 #########################
 #   global variables    #
@@ -330,7 +330,7 @@ def convert():
     #save file
     save()
     
-    conversion = param(filename)
+    conversion = Parameters(filename)
     conversion.run()
     
     
