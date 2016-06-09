@@ -12,6 +12,7 @@ can be changed.
 import Point as p
 import numpy as np
 import constants as c
+print("line step 0")
 logger = c.logging.getLogger(__name__)
 
 class Line(object):

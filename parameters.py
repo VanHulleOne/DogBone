@@ -102,7 +102,9 @@ class Parameters:
         self.PartParams = namedtuple('PartParams', 'solidityRatio printSpeed shiftX shiftY numLayers')
         self.everyPartsParameters = self.zipVariables_gen(self.PartParams(
                               self.solidityRatio, self.printSpeed, self.shiftX, self.shiftY,
-                              self.numLayers))
+                              self.numLayers))                        
+        for key in main_data:
+            print(key + "  &&&  " + str(main_data[key]))
         
     def zipVariables_gen(self, inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):
