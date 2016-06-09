@@ -10,6 +10,7 @@ Used creating all of the lines of Gcode.
 class Gcode:    
     
     def __init__(self, data):
+        print("step 5")
         for key in data:
             setattr(self, key, data[key])
 
@@ -21,9 +22,7 @@ class Gcode:
             tempString = ('X{:.3f} Y{:.3f} Z{:.3f} E{:.3f}\n'.format(endPoint.x,
                           endPoint.y, endPoint.z, extrudeTo))
     
-        return 'G01 ' + tempString + ' F{:.0f}\n'.format(printSpeed)
-    
-                    
+        return 'G01 ' + tempString + ' F{:.0f}\n'.format(printSpeed)                
     
     def rapidMove(endPoint, ommitZ):
         if ommitZ:
@@ -48,11 +47,11 @@ class Gcode:
     def firstApproach(lastE, startPoint):
         return 'G1 Z{:.3f} F{:.0f} E{:.3f}\n'.format(startPoint.z, APPROACH_FR, lastE)
         
-    def newPart():
+    def newPart(self):
         return 'G92 E0\n'
     
     def startGcode(self):
-        with open(startEndSubDirectory + '\\' + self.start_Gcode_FileName) as startFile:
+        with open(self.startEndSubDirectory + '\\' + self.start_Gcode_FileName) as startFile:
             lines = startFile.readlines()   
         tempString = ''
         for line in lines:

@@ -7,7 +7,7 @@ Created on Sat May 28 16:39:58 2016
 from tkinter import *               #GUI module
 from tkinter import filedialog      #window for saving and uploading files
 import json                         #for saving and uploading files
-from parameters import Parameters        #for converting to Gcode
+from main import Main        #for converting to Gcode
 
 #########################
 #   global variables    #
@@ -42,12 +42,12 @@ common_texts = ["outline", "solidityRatio", "printSpeed",
                 "shiftX", "shiftY", "pattern", "numShells"]
               
 #array of Strings of the default values
-defaults = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                #part parameters
+defaults = ["regularDogBone", "1.09", "2000", "10, 50",                #part parameters
             "10, 35, 60", "0", "8",                                         #part parameters
             "None", "0",                                                    #part parameters
             "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                    #layer parameters
             "0", "0", "13,1,1,0,0,1,1", "2*c.EPSILON",                      #layer parameters
-            "'Start_Gcodee_Taz5.txt'", "'End_Gcode_Taz5.txt'"]              #file parameters
+            "Start_Gcode_Taz5.txt", "End_Gcode_Taz5.txt"]              #file parameters
          
           
 ##########################################################
@@ -312,7 +312,7 @@ def dogbone():
     global texts            #array of variable names
     global text_variable    #dictionary with StringVar as values
     
-    dogbone_data = ["ds.regularDogBone()", "1.09", "2000", "10, 50",                #part parameters
+    dogbone_data = ["regularDogBone", "1.09", "2000", "10, 50",                #part parameters
             "10, 35, 60", "0", "8",                                                 #part parameters
             "None", "0",                                                            #part parameters
             "0, -45, 90, 45, 45, 90, -45", "0.5", "0.4",                            #layer parameters
@@ -329,7 +329,8 @@ def convert():
     #save file
     save()
     
-    conversion = Parameters(filename)
+    print(filename)
+    conversion = Main(filename)
     conversion.run()
     
     

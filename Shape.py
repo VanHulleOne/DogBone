@@ -31,7 +31,7 @@ def finishedOutline(func):
                 self.finishOutline()
             except Exception as e:
                 raise Exception('Shape must have a continuous closed outline to use '
-                            + func.__name__ + '()\n\t\t' + e.message)
+                            + func.__name__ + '()\n\t\t' + str(e))
         return func(self, *args)
     return checker
 

@@ -11,17 +11,13 @@ import math
 from collections import namedtuple
 import constants as c
 import doneShapes as ds
-import figura as fg
 import time
 import itertools
 import os
 import numpy as np
 import json
-import gcode
 
 class Parameters:
-    
-    
 
     """
     Part Parameters
@@ -75,29 +71,40 @@ class Parameters:
     Z_CLEARANCE = 10.0 #mm to move Z up
     APPROACH_FR = 1500 #mm/min aproach feedrate
     
-    data = {}
+    param_data = {}
     
-    def __init__(self, parameter):
-        with open(parameter, 'r') as fp:
-            data = json.load(fp)           
-        for key in data:
-            setattr(self, key, data[key])
-        data["outputFileName"] = 'ZigZag.gcode'
-        data["currPath"] = os.path.dirname(os.path.realpath(__file__))
-        data["outputSubDirectory"] = self.currPath + '\\Gcode'
-        data["startEndSubDirectory"] = self.currPath + '\\Start_End_Gcode'
-        data["filamentDiameter"] = 3.0
-        data["filamentArea"] = math.pi*self.filamentDiameter**2/4.0
-        data["nozzleDiameter"] = 0.5
-        data["RAPID"] = 4000
-        data["TRAVERSE_RETRACT"] = 0.5
-        data["MAX_FEED_TRAVERSE"] = 10
-        data["MAX_EXTRUDE_SPEED"] = 100
-        data["Z_CLEARANCE"] = 10.0
-        data["APPROACH_FR"] = 1500
-        g_code = gcode.Gcode(data)
+    LayerParams = None
+    _layerParameters = None
+    
+    def __init__(self, main_data): 
+        print("step 2")
+        for key in main_data:
+            self.param_data[key] = main_data[key]          
+        for key in self.param_data:
+            setattr(self, key, self.param_data[key])
+        self.param_data["outputFileName"] = 'ZigZag.gcode'
+        self.param_data["currPath"] = os.path.dirname(os.path.realpath(__file__))
+        self.param_data["outputSubDirectory"] = self.currPath + '\\Gcode'
+        self.param_data["startEndSubDirectory"] = self.currPath + '\\Start_End_Gcode'
+        self.param_data["filamentDiameter"] = 3.0
+        self.param_data["filamentArea"] = math.pi*self.filamentDiameter**2/4.0
+        self.param_data["nozzleDiameter"] = 0.5
+        self.param_data["RAPID"] = 4000
+        self.param_data["TRAVERSE_RETRACT"] = 0.5
+        self.param_data["MAX_FEED_TRAVERSE"] = 10
+        self.param_data["MAX_EXTRUDE_SPEED"] = 100
+        self.param_data["Z_CLEARANCE"] = 10.0
+        self.param_data["APPROACH_FR"] = 1500
+        self.LayerParams = namedtuple('LayerParams', 'infillShiftX infillShiftY infillAngle \
+                                            numShells layerHeight pathWidth trimAdjust')            
+        self._layerParameters = self.LayerParams(self.infillShiftX, self.infillShiftY, self.infillAngleDegrees, self.numShells,
+                       self.layerHeight, self.pathWidth, self.trimAdjust)
+        self.PartParams = namedtuple('PartParams', 'solidityRatio printSpeed shiftX shiftY numLayers')
+        self.everyPartsParameters = self.zipVariables_gen(self.PartParams(
+                              self.solidityRatio, self.printSpeed, self.shiftX, self.shiftY,
+                              self.numLayers))
         
-    def zipVariables_gen(inputLists, repeat=False):
+    def zipVariables_gen(self, inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):
             # Tests if inputLists is a generator
             iterType = tuple
@@ -115,51 +122,12 @@ class Parameters:
             if not repeat:
                 break    
     
-    LayerParams = namedtuple('LayerParams', 'infillShiftX infillShiftY infillAngle \
-                                            numShells layerHeight pathWidth trimAdjust')            
-    _layerParameters = LayerParams(infillShiftX, infillShiftY, infillAngleDegrees, numShells,
-                       layerHeight, pathWidth, trimAdjust)
     
-    def layerParameters():
-        return zipVariables_gen(_layerParameters, repeat=True)
     
-    PartParams = namedtuple('PartParams', 'solidityRatio printSpeed shiftX shiftY numLayers')
-    everyPartsParameters = zipVariables_gen(PartParams(
-                              solidityRatio, printSpeed, shiftX, shiftY,
-                              numLayers))
+    def layerParameters(self):
+        return self.zipVariables_gen(self._layerParameters, repeat=True)
     
-    def run(self):
-        startTime = time.time()
-        print('\nGenerating code, please wait...')
-        
-        fig = fg.Figura(self.outline, self.data)
-        
-        with open(self.outputSubDirectory+'\\'+self.outputFileName, 'w') as f:      
-            for string in fig.masterGcode_gen():
-                f.write(string)
-        
-        endTime = time.time()
-        print('\nCode generated.')
-        print('Done writting: ' + self.outputFileName + '\n')
-        print('{:.2f} total time'.format(endTime - startTime))
-        
-        if c.LOG_LEVEL < c.logging.WARN:
-            with open(self.outputSubDirectory+'\\'+self.outputFileName, 'r') as test,\
-                 open(self.outputSubDirectory+'\\SAVE_master.gcode') as master:
-                testLines = test.readlines()
-                masterLines = master.readlines()
-                i = 0
-                numDiffs = 0
-                for t,m in zip(testLines, masterLines):
-                    i += 1
-                    if t != m:
-                        numDiffs += 1
-                        if i%10**round(np.log10(i*2)-1)<1:
-                            print('Diff at line: ', i)
-                            print('Test: ' + t)
-                            print('Master: ' + m)
-                            print('---------------------------\n')
-            print('\nTotal number of differences: ', numDiffs)
+    
         
      
                               

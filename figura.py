@@ -36,9 +36,17 @@ from Shape import Shape
 
 class Figura:  
 
-    data = {}    
+    fig_data = {}   
+    gc = None
+    pr = None
     
-    def __init__(self, shape, param):
+    def __init__(self, shape, param_data):
+        print("step 4")
+        for key in param_data:
+            self.fig_data[key] = param_data[key]
+        self.gc = gcode.Gcode(self.fig_data)
+        self.pr = Parameters(self.fig_data)       
+        
         self.shape = shape
 #        startTime = time.time()
 #        layer = self.organizedLayer(inShapes)
@@ -49,17 +57,14 @@ class Figura:
 #            f.write(layer.CSVstr())
         
         self.partCount = 1 # The current part number
-        self.data = param
         self.layers = {}
         """ The dictionary which stores the computed layers. The key is created in
-        layer_gen(). """
+        layer_gen(). """        
     
-    gc = gcode.Gcode(data)
-    pr = Parameters(data)
         
     def masterGcode_gen(self):
         yield self.gc.startGcode()
-        for partParams in pr.everyPartsParameters:
+        for partParams in self.pr.everyPartsParameters:
             """ pr.everyPartsParameters is a generator of the parameters for the parts.
             The generator stops yielding additional parameters when there are no
             more parts left to print. The parameters are sent to layer_gen() which
@@ -96,8 +101,8 @@ class Figura:
         the layer parameters so they can be printed in the gcode.)
         """        
         
-        layerParam_Gen = pr.layerParameters()
-        currHeight = pr.firstLayerShiftZ
+        layerParam_Gen = self.pr.layerParameters()
+        currHeight = self.pr.firstLayerShiftZ
         
         for _ in range(partParams.numLayers):
             """ Iterate through for the correct number of layers. """
@@ -121,11 +126,11 @@ class Figura:
                 for shellNumber in range(layerParam.numShells):
                     """ If the layer needs shells create them here. """
                     filledList.append(currOutline)
-                    currOutline = currOutline.offset(layerParam.pathWidth-pr.trimAdjust, c.INSIDE)
+                    currOutline = currOutline.offset(layerParam.pathWidth-self.pr.trimAdjust[0], c.INSIDE)
                 
                 infill = InF.InFill(currOutline, layerParam.pathWidth, layerParam.infillAngle,
                                     shiftX=layerParam.infillShiftX, shiftY=layerParam.infillShiftY,
-                                    design=pr.pattern, designType=pr.designType)
+                                    design=self.pr.pattern, designType=self.pr.designType)
                 self.layers[layerKey] = self.organizedLayer(filledList + [infill])
             
             """ a tuple of the organized LineGroup and the layer parameters. """
@@ -134,38 +139,38 @@ class Figura:
     
     def partGcode_gen(self, partParams):        
         layerNumber = 1
-        yield gc.newPart()
+        yield self.gc.newPart()
         totalExtrusion = 0
         
         for layer, layerParam in self.layer_gen(partParams):
             extrusionRate = (partParams.solidityRatio*layerParam.layerHeight*
-                            layerParam.pathWidth/pr.filamentArea)
+                            layerParam.pathWidth/self.pr.filamentArea)
             yield ';Layer: ' + str(layerNumber) + '\n'
             yield ';' + str(layerParam) + '\n'
             yield ';T' + str(self.partCount) + str(layerNumber) + '\n'
             yield ';M6\n'
             yield ('M117 Layer ' + str(layerNumber) + ' of ' +
                             str(partParams.numLayers) + '..\n')
-            yield gc.rapidMove(layer[0].start, c.OMIT_Z)
-            yield gc.firstApproach(totalExtrusion, layer[0].start)
+            yield self.gc.rapidMove(layer[0].start, c.OMIT_Z)
+            yield self.gc.firstApproach(totalExtrusion, layer[0].start)
             
             prevLoc = layer[0].start
             for line in layer:                
                 if prevLoc != line.start:
                     if (prevLoc - line.start) < pr.MAX_FEED_TRAVERSE:
-                        yield gc.rapidMove(line.start, c.OMIT_Z)
+                        yield self.gc.rapidMove(line.start, c.OMIT_Z)
                     else:
-                        yield gc.retractLayer(totalExtrusion, prevLoc)
-                        yield gc.rapidMove(line.start, c.OMIT_Z)
-                        yield gc.approachLayer(totalExtrusion, line.start)
+                        yield self.gc.retractLayer(totalExtrusion, prevLoc)
+                        yield self.gc.rapidMove(line.start, c.OMIT_Z)
+                        yield self.gc.approachLayer(totalExtrusion, line.start)
                         
                 line.extrusionRate = extrusionRate
                 totalExtrusion += line.length*line.extrusionRate
-                yield gc.feedMove(line.end, c.OMIT_Z, totalExtrusion,
+                yield self.gc.feedMove(line.end, c.OMIT_Z, totalExtrusion,
                                           partParams.printSpeed)
                 prevLoc = line.end
             
-            yield gc.retractLayer(totalExtrusion, layer[-1].end)
+            yield self.gc.retractLayer(totalExtrusion, layer[-1].end)
             yield '\n'
             layerNumber += 1
         yield ';Extrusion amount for part is ({:.1f} mm)\n\n'.format(totalExtrusion)
