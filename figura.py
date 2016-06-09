@@ -27,7 +27,7 @@ to avoid having inaccurate comments.
 """
 
 import gcode
-import parameters
+from parameters import Parameters
 import Point as p
 import InFill as InF
 import LineGroup as lg
@@ -55,7 +55,7 @@ class Figura:
         layer_gen(). """
     
     gc = gcode.Gcode(data)
-    pr = parameters.Parameters(data)
+    pr = Parameters(data)
         
     def masterGcode_gen(self):
         yield self.gc.startGcode()
