@@ -15,10 +15,14 @@ import constants as c
 from functools import wraps
 import numpy as np
 <<<<<<< HEAD
+<<<<<<< HEAD
 print("shape step 0")
 =======
 import Point as p
 >>>>>>> refs/remotes/origin/alex_3
+=======
+
+>>>>>>> parent of f3c0d85... debugging
 logger = c.logging.getLogger(__name__)
 logger.setLevel(c.LOG_LEVEL)
 

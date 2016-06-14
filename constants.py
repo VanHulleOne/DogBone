@@ -8,7 +8,6 @@ Constants used across modules.
 """
 import logging
 import importlib
-print("constants step 0")
 
 ARC_NUMPOINTS = 20
 CW = -1 #Circle direction clock wise

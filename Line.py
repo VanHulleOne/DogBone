@@ -13,10 +13,13 @@ import Point as p
 import numpy as np
 import constants as c
 <<<<<<< HEAD
+<<<<<<< HEAD
 print("line step 0")
 =======
 import time
 >>>>>>> refs/remotes/origin/alex_3
+=======
+>>>>>>> parent of f3c0d85... debugging
 logger = c.logging.getLogger(__name__)
 
 class Line(object):
