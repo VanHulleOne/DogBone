@@ -12,7 +12,11 @@ can be changed.
 import Point as p
 import numpy as np
 import constants as c
+<<<<<<< HEAD
 print("line step 0")
+=======
+import time
+>>>>>>> refs/remotes/origin/alex_3
 logger = c.logging.getLogger(__name__)
 
 class Line(object):
@@ -64,8 +68,8 @@ class Line(object):
                      [self.start.y, self.end.y]]
             for row in tempList:
                 row.sort()
-            self.upperLeft = p.Point(tempList[0][0], tempList[1][1])
-            self.lowerRight = p.Point(tempList[0][1], tempList[1][0])
+            self.__upperLeft = p.Point(tempList[0][0], tempList[1][1])
+            self.__lowerRight = p.Point(tempList[0][1], tempList[1][0])
         return self.__lowerRight
     
     @property
@@ -100,26 +104,25 @@ class Line(object):
     def angle(self):
         angle = np.arctan2(self.end.y-self.start.y, self.end.x-self.start.x)
         return angle if angle >= 0 else angle + 2*np.pi
-    
-    def rayIntersects(self, ray):
-        if not self.doBoundingBoxesIntersect(ray):
-            return 0
-        Q_Less_P = ray.start.get2DPoint() - self.start.get2DPoint()
-        denom = 1.0*np.cross(self.vector, ray.vector)
-        if abs(denom) < c.EPSILON:
-            return 0 # Parallel
-        u = np.cross(Q_Less_P, self.vector)/denom
-        if u < 0:
-            return 0 # behind ray
-        t = np.cross(Q_Less_P, ray.vector)/denom
 
-        if abs(t) < c.EPSILON > abs(1-t):# < c.EPSILON:
-            return -1 # intersected at endpoint
-        if t < 0 or t > 1:
-            return 0 # No intersection
-        return 1 # and intersection
+    def calcT(self, point):
+        """ Returns a constant representing point's location along self.
         
-    
+        The point is assumed to be on self. T is the constant along self
+        where point is located with start being 0, end being 1, <0 is behind
+        the line and >0 is past the line segment
+        
+        Parameters
+        ----------
+        point - The test point.
+        
+        Return
+        ------
+        A constant representing point's location along self.
+        """
+        index = np.argmax(np.abs(self.start.normalVector[:2]-self.end.normalVector[:2]))
+        return (point[index] - self.start[index])/(self.end[index]-self.start[index])
+        
     def areParallel(self, line):
         """
         returns True if the two lines are parallel
@@ -149,7 +152,7 @@ class Line(object):
                     (np.linalg.norm(perpVect)*np.linalg.norm(line.vector)))
         # if cosTheda is < c.EPSILON then the lines are parallel and we return True
         return abs(cosTheda) < c.EPSILON   
-    
+
     def segmentsIntersect(self, other, allowProjInt = False):
         """
         Probably the most important method in the Line module. This tests to
@@ -180,7 +183,7 @@ class Line(object):
             end points. Next, convert the set back into a list so it can
             finally be sorted.
             """
-            pointList = sorted(list(set([self.start, self.end, other.start, other.end])))            
+            pointList = sorted(list(set([self.start, self.end, other.start, other.end])), key=self.calcT)            
             if len(pointList) == 3:
                 """
                 if there are only three points in the list then return 2, the
@@ -188,6 +191,9 @@ class Line(object):
                 two lines.
                 """
                 return 2, pointList[1] #if they are colinear and two ends have the same point return that point
+            elif len(pointList) == 2:
+                """ If the two lines have the same endpoints. """
+                return 2.5, self.getMidPoint()
             else:
                 """
                 If the length was not three then we know it is length 4 in which case
@@ -246,17 +252,29 @@ class Line(object):
         matrix = [p1.normalVector, p2.normalVector, p3.normalVector, [1,1,1,1]]
         matrix = np.rot90(matrix)
         return abs(np.linalg.det(matrix))/2.0
-    
+
     def areColinear(self, other):
+        """returns True if the two lines are colinear
+        
+        This method tests if two lines are colinear by finding the angle
+        between the perpendicular vector of self and lines created from self to
+        both ends of other.
+        If the dot product between perpVect and both of the new vectors is zero then
+        they are colinear. Farin and Hansford recommend checking within
+        a physically meaningful tolerance so equation 3.14 from pg 50 of
+        Farin-Hansford Geometry Toolbox is used to compute the cosine of the angle
+        and compare that to our ANGLE_EPS. If cosTheda < ANGLE_EPS then the lines
         """
-        If the area of the two created triangles is less than the tolerance
-        than the two lines are assumed to be co-linear.
-        """
-        tolerance = 0.0001        
-        area = self.getArea(self.start, self.end, other.start)
-        area += self.getArea(self.start, self.end, other.end)
-        if(area < tolerance): return True
-        return False        
+        perpVect = np.array([-self.vector[c.Y], self.vector[c.X]])
+        vect1 = other.end[:2]-self.start[:2]
+        vect2 = other.start[:2]-self.start[:2]
+        cosTheda1 = (np.dot(perpVect, vect1)/
+                    (np.linalg.norm(perpVect)*np.linalg.norm(vect1)))
+        if abs(cosTheda1) > 0.0001:
+            return False
+        cosTheda2 = (np.dot(perpVect, vect2)/
+                    (np.linalg.norm(perpVect)*np.linalg.norm(vect2)))
+        return not(abs(cosTheda2) > 0.0001)            
     
     def doBoundingBoxesIntersect(self, other):
         """

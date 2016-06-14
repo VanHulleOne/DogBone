@@ -14,7 +14,11 @@ from LineGroup import LineGroup as LG
 import constants as c
 from functools import wraps
 import numpy as np
+<<<<<<< HEAD
 print("shape step 0")
+=======
+import Point as p
+>>>>>>> refs/remotes/origin/alex_3
 logger = c.logging.getLogger(__name__)
 logger.setLevel(c.LOG_LEVEL)
 
@@ -30,8 +34,16 @@ def finishedOutline(func):
             try:
                 self.finishOutline()
             except Exception as e:
+<<<<<<< HEAD
                 raise Exception('Shape must have a continuous closed outline to use '
                             + func.__name__ + '()\n\t\t' + str(e))
+=======
+                try:
+                    raise Exception('Shape must have a continuous closed outline to use '
+                                + func.__name__ + '()\n\t\t' + e.message)
+                except Exception as _:
+                    raise e
+>>>>>>> refs/remotes/origin/alex_3
         return func(self, *args)
     return checker
 
@@ -88,11 +100,11 @@ class Shape(LG):
         Calls the companion method self.__finishOutline() and if that method
         does not throw an eror it assigns the returned value to self.lines and
         sets the outline as finsihed.
-        """  
-        self.lines = self.__finishOutline()
+        """
+        self.lines = self._finishOutline()
         self.outlineFinished = True
 
-    def __finishOutline(self, normList=None, finishedShape=None):
+    def _finishOutline(self, normList=None, finishedShape=None):
         """ A companion method for finishOutline.
         
         The method sorts the lines so the the end of one line is touching
@@ -110,7 +122,7 @@ class Shape(LG):
         finishedShape
         """
         if normList is None:
-            normList = np.array([point.normalVector for point in self.iterPoints()])     
+            normList = np.array([point.normalVector for point in self.iterPoints()], dtype=np.float)
         elif len(normList[(normList < np.inf)]) == 0:
             return
         if finishedShape is None:
@@ -123,7 +135,6 @@ class Shape(LG):
         firstLine = self[firstLineIndex]
         normList[firstLineIndex*2:firstLineIndex*2+2] = np.inf
 
-        
         if not self.isInside(firstLine.getOffsetLine(c.EPSILON*2, c.INSIDE).getMidPoint()):
             """ Test if the inside (left) of the line is inside the part. If
             not flip the line. """
@@ -131,7 +142,6 @@ class Shape(LG):
   
         testPoint = firstLine.end
         finishedShape.append(firstLine)
-        
         while len(normList[(normList < np.inf)]) > 0:
 
             distances = np.linalg.norm(normList-testPoint.normalVector, None, 1)
@@ -140,7 +150,8 @@ class Shape(LG):
             
             if distances[index] > c.EPSILON:
                 raise Exception('Shape has a gap of ' + str(distances[index]) +
-                                'at point ' + str(testPoint))
+                                ' at point ' + str(testPoint) + ', ' + 
+                                str(p.Point(normList[index])))
             if index%2:
                 """ If index is odd we are at the end of a line so the line needs to be flipped. """
                 nearestLine = nearestLine.fliped()
@@ -154,58 +165,137 @@ class Shape(LG):
             normList[[index*2,index*2+1]] = np.inf
             
             if testPoint == firstLine.start:
-                self.__finishOutline(normList, finishedShape)
+                self._finishOutline(normList, finishedShape)
                 return finishedShape
         dist = firstLine.start - finishedShape[-1].end
+        if dist < c.EPSILON:
+            return finishedShape
         raise Exception('Shape not closed. There is a gap of {:0.5f} at point {}'.format(dist, testPoint))
 
     @finishedOutline                                
     def offset(self, distance, desiredSide):
-        tempLines = []
-        for subShape in self.subShape_gen():
-            trimJoin = self.trimJoin_Coro()
-            next(trimJoin)
-            for line in subShape:
-                trimJoin.send(line.getOffsetLine(distance, desiredSide))
-            tempLines.extend(trimJoin.send(None))
-        return Shape(tempLines)
-    
-    def newOffset(self, distance, desiredSide):
-        tempLines = []
-        for subshape in self.subShape_gen():
-            subshape.append(subshape[0])
-            points = []
-            shapeIter = iter(subshape)
-            prevLine = next(shapeIter).getOffsetLine(distance, desiredSide)
-            for currLine in (line.getOffsetLine(distance, desiredSide) for line in shapeIter):
-                print('Prev: ', prevLine)
-                print('curr: ', currLine)
-                _, point = prevLine.segmentsIntersect(currLine, c.ALLOW_PROJECTION)
-                points.append(point)
-                prevLine = currLine
-            tempLines.extend(l.Line(p1, p2) for p1, p2 in self.pairwise_gen(points))
-        splitLines = []
-        for iLine in tempLines:
-            pointList = [iLine.start]
-            for jLine in tempLines:
-                if jLine != iLine:
-                    interSecType, point = iLine.segmentsIntersect(jLine)
-                    if interSecType == 3:
-                        print('Fix this co-linear overlapping')
-                    if point not in pointList:
-                        pointList.append(point)
-            pointList.append(iLine.end)
-            pointList = sorted(pointList, key=lambda x: x-iLine.start)
-            splitLines.extend(l.Line(pointList[i], pointList[i+1]) for i in range(len(pointList)-1))
+        """ Offsets a shape be distance to the desired side.
         
-        tempShape = Shape(splitLines)        
+        The main offset method which calls _offset on each sub-shape of itself.
+        If an error occurs while trying to offset a sub-shape the error is logged
+        and the next shape is tried.
+        
+        Parameters
+        ----------
+        distance - The amount to offset
+        desiredSide - either inside or outside
+        
+        Return
+        ------
+        newShape - The newly offset shape.
+        
+        """
+        newShape = Shape()
+        for subShape in self.subShape_gen():
+            try:
+                newShape.addLineGroup(self._offset(subShape, distance, desiredSide))
+            except Exception as e:
+                logger.info('One or more sub-shapes could not be offset. ' + str(e))
+        return newShape
+    
+    def _offset(self, subShape, distance, desiredSide):
+        """ A companion method for offset which actually does the offsetting.
+        
+        Each sub-shape of self is sent to this method. It currently works as follows:
+        
+        1) Runs through every line in the sub-shape, creating its offset, and
+        trimming/joining the new lines as necessary.
+        
+        2) Tests every line against every other line to find intersections. If there
+        are any intersections then the line is split at those points.
+        
+        3) Turns all of the split lines into a new Shape
+        
+        4) Checks all of the lines to see if their left side is still inside of the
+        shape. If they are inside they are appended to a new list
+        
+        5) Turn the new list of lines into another Shape
+        
+        6) Finishes the new shape.
+        
+        Parameters
+        ----------
+        subShape - The sub-shape to be offset
+        distance - The distance to offset
+        desiredSide - The side (inside/outside) to offset
+        
+        Return
+        ------
+        offShape - The offset sub-shape.
+        """
+        points = []
+        prevLine = subShape[-1].getOffsetLine(distance, desiredSide)
+        for currLine in (line.getOffsetLine(distance, desiredSide)
+                                for line in subShape):
+            """ Offset all of the lines and trim/join their ends. """
+            _, point = prevLine.segmentsIntersect(currLine, c.ALLOW_PROJECTION)
+            if prevLine.calcT(point) > 0:
+                """ Make sure the new point is ahead of the start of the prev line.
+                If it is not we probably have two lines which have crossed the shape's
+                medial axis and therefore their projected intersection is in a
+                non-useful location.
+                """
+                points.append(point)
+            else:
+                points.append(prevLine.end)
+                points.append(currLine.start)
+            prevLine = currLine
+            
+        tempLines = [l.Line(p1, p2) for p1, p2 in self.pairwise_gen(points)]
+        splitLines = []
+        starts = np.array([line.start.get2DPoint() for line in tempLines])
+        vectors = np.array([line.vector for line in tempLines])
+        
+        for iLine in tempLines:
+            """ Find if the new lines cross eachother anywhere and if so split them. """
+            pointSet = {iLine.start, iLine.end}
+            Q_Less_P = iLine.start[:2] - starts
+            denom = 1.0*np.cross(vectors, iLine.vector)
+            all_t = np.cross(Q_Less_P, vectors)/denom
+            all_u = np.cross(Q_Less_P, iLine.vector)/denom
+            t = all_t[(0 <= all_u) & (all_u <= 1) & (0 <= all_t) & (all_t <= 1)]
+
+            if len(t):
+                pointSet |= set(p.Point(iLine.start.x + iLine.vector[c.X]*value,
+                                        iLine.start.y+iLine.vector[c.Y]*value)
+                                        for value in t)
+
+            pointList = sorted(pointSet, key=iLine.calcT)
+
+            splitLines.extend(l.Line(pointList[i], pointList[i+1])
+                                for i in range(len(pointList)-1))
+
+        tempShape = Shape(splitLines)
         shapeLines = []
         for line in splitLines:
-            if(tempShape.isInside(line.getOffsetLine(2*c.EPSILON, c.INSIDE).getMidPoint)):
+            """ Check each line to see if its left side is inside the new offset shape. """
+            if(tempShape.isInside(line.getOffsetLine(2*c.EPSILON, c.INSIDE).getMidPoint())):
                 shapeLines.append(line)
-        return Shape(shapeLines)
-                
+
+        offShape = Shape(shapeLines)
+        offShape.finishOutline()
+        return offShape
+              
     def pairwise_gen(self, l1):
+        """ A generator to turn a list into pairs so it can be made into lines.
+        
+        This is used to take a list of points and pair them so they can be made
+        into lines. It pairs each item with its neighbors and even creates a pair
+        of the last and first item.
+        
+        Parameter
+        ---------
+        l1 - an iterable
+        
+        Yields
+        ------
+        tuple of points
+        """
         l1Iter = iter(l1)
         first = pre = next(l1Iter)
         for curr in l1Iter:
@@ -226,8 +316,7 @@ class Shape(LG):
         Yields
         ------
         in - Lines
-        out - one big List of lines at the end since in Python 2.7 a coroutine
-        can't return a value.
+        out - one big List of lines at the end.
         """
         offsetLines = []
         moveEnd = yield
@@ -244,7 +333,7 @@ class Shape(LG):
         offsetLines.append(moveEnd)
         offsetLines[0] = l.Line(point, offsetLines[0].end, offsetLines[0])
         yield offsetLines
-      
+    
     def isInside(self, point, ray=np.array([0.998, 0.067])):
         """
         This method determines if the point is inside
@@ -267,25 +356,34 @@ class Shape(LG):
         to hit another point. The random amount is to avoid hitting another endpoint
         which are usually at a regular interval.
         """
+#        print('New isInside test')
+#        print('Point: ', point)
         if(point[c.X] > self.maxX or point[c.X] < self.minX): return c.OUTSIDE
         if(point[c.Y] > self.maxY or point[c.Y] < self.minY): return c.OUTSIDE
 
         Q_Less_P = point[:2] - self.starts
         denom = 1.0*np.cross(self.vectors, ray)
-        all_u = np.cross(Q_Less_P, self.vectors)/denom
-        all_t = np.cross(Q_Less_P, ray)/denom
+        all_u = np.cross(Q_Less_P, self.vectors)/denom # the intersection ratio on ray
+        all_t = np.cross(Q_Less_P, ray)/denom # The intersection ratio on self.lines 
 
+#        print('all_u')
+#        print(all_u)
+#        print('all_t')
+#        print(all_t)
         all_t = all_t[all_u > 0]
 
         endPoints = (np.abs(all_t) < c.EPSILON) | (np.abs(1-all_t) < c.EPSILON)
         if np.any(endPoints):
+#            time.sleep(0.5)
             oldAngle = np.arctan2(*ray[::-1])
             newAngle = oldAngle+(90+np.random.rand())/360.0*2*np.pi
             logger.info('Recursion made in isInside()\n\tcollision at angle: ' +
-                            '{:0.1f} \n\tnext angle attempt: {:0.1f}'.format(
-                            oldAngle*360/2.0/np.pi, newAngle*360/2/np.pi))
+                            '{:0.1f} \n\tnext angle attempt: {:0.1f} \
+                            \n\tPoint: {}'.format(
+                            oldAngle*360/2.0/np.pi, newAngle*360/2/np.pi, point))
             newRay=np.array([np.cos(newAngle), np.sin(newAngle)])
             return  self.isInside(point, newRay)
             
         intersections = (0 < all_t) & (all_t < 1)
+#        print('Intersections: ', intersections)
         return (c.INSIDE if np.sum(intersections) % 2 else c.OUTSIDE)

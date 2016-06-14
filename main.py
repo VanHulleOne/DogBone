@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jun  9 13:12:35 2016
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/alex_3
 @author: adiebold
 """
 
 import figura as fg
+<<<<<<< HEAD
+=======
+from gcode import Gcode
+>>>>>>> refs/remotes/origin/alex_3
 import time
 from parameters import Parameters
 import json
@@ -34,13 +41,21 @@ class Main:
             break
         print("step 1")
         self.pr = Parameters(self.main_data)
+<<<<<<< HEAD
+=======
+        self.gc = Gcode(self.pr)
+>>>>>>> refs/remotes/origin/alex_3
     
     def run(self):
         print("step 3")
         startTime = time.time()
         print('\nGenerating code, please wait...')
         
+<<<<<<< HEAD
         fig = fg.Figura(self.outline_options[self.pr.outline], self.pr.param_data)
+=======
+        fig = fg.Figura(self.outline_options[self.pr.outline], self.pr, self.gc)
+>>>>>>> refs/remotes/origin/alex_3
         
         with open(self.pr.outputSubDirectory+'\\'+self.pr.outputFileName, 'w') as f:      
             for string in fig.masterGcode_gen():
