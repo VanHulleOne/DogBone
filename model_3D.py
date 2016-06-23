@@ -8,6 +8,10 @@ Created on Thu Jun 16 17:57:12 2016
 from tkinter import *
 from tkinter import ttk
 
+import OpenGL
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -83,6 +87,11 @@ class Three_D:
             num_color = num%len(colors)
             self.ax.plot_wireframe(self.xar[num], self.yar[num], self.zar[num], color=self.colors[num_color])
         
+class SceneView(openglGUI.glGuiPanel):
+    def __init__(self, parent):
+        super(SceneView, self).__init__(parent)        
+    
+    
 def error_box():
         
     popup = Tk()
