@@ -127,7 +127,7 @@ class Figura:
                 infill = InF.InFill(trimShape,
                                     layerParam.pathWidth, layerParam.infillAngle,
                                     shiftX=layerParam.infillShiftX, shiftY=layerParam.infillShiftY,
-                                    design=pr.pattern, designType=pr.designType)
+                                    design=self.pr.pattern, designType=self.pr.designType)
     #                self.layers[layerParam] = self.organizedLayer(filledList + [infill])
                 filledList.append(infill)
             ol = self.organizedLayer(filledList)
@@ -159,7 +159,7 @@ class Figura:
             yield ';T' + str(self.partCount) + str(layerNumber) + '\n'
             yield ';M6\n'
             yield ('M117 Layer ' + str(layerNumber) + ' of ' +
-                            str(partParams.numLayers) + '..\n')
+                            str(self.numLayers) + '..\n')
             yield self.gc.rapidMove(layer[0].start, c.OMIT_Z)
             yield self.gc.firstApproach(totalExtrusion, layer[0].start)
             
