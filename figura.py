@@ -35,15 +35,19 @@ class Figura:
     
     data_points =  open("data_points.txt", 'a')
     
-    def __init__(self, shape, param, g_code):
+    def __init__(self, stl, param, g_code):
         
-        self.mesh = trimesh.load_mesh(shape)        
+        self.mesh = trimesh.load_mesh(stl)        
         
         self.gc = g_code
         self.pr = param
         
-        self.maxZ = mesh.bounds[:,2:][1]
-        self.numLayers = [int((maxZ//layerH)[0]) for layerH in layerHeight]        
+        self.maxZ = self.mesh.bounds[:,2:][1]
+        
+        self.numLayers = []
+        
+        for layerH in self.pr.layerHeight:
+            self.numLayers.append(int((self.maxZ//layerH)[0]))       
         
         self.partCount = 1 # The current part number
 
