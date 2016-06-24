@@ -29,15 +29,21 @@ import InFill as InF
 import LineGroup as lg
 import constants as c
 from Shape import Shape, Section
+import trimesh
 
 class Figura:  
     
     data_points =  open("data_points.txt", 'a')
     
     def __init__(self, shape, param, g_code):
+        
+        self.mesh = trimesh.load_mesh(shape)        
+        
         self.gc = g_code
         self.pr = param
-        self.shape = shape
+        
+        self.maxZ = mesh.bounds[:,2:][1]
+        self.numLayers = [int((maxZ//layerH)[0]) for layerH in layerHeight]        
         
         self.partCount = 1 # The current part number
 
@@ -86,15 +92,14 @@ class Figura:
         layerParam_Gen = self.pr.layerParameters()
         currHeight = self.pr.firstLayerShiftZ
         
-        for lay in range(partParams.numLayers):
+        while currHeight <= self.maxZ:
 #            lay += 132
-            print('\nLayer: ', lay)
             """ Iterate through for the correct number of layers. """
             layerParam = next(layerParam_Gen)
             
             currHeight += layerParam.layerHeight
 
-            sec = Section(pr.mesh.section(plane_origin=[0,0,currHeight],plane_normal=[0,0,1]))#self.shape
+            sec = Section(self.mesh.section(plane_origin=[0,0,currHeight],plane_normal=[0,0,1]))#self.shape
 
             filledList = []
 

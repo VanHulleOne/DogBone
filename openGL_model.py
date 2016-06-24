@@ -112,8 +112,14 @@ pixel_grid=''
 for y in range(h):
     row_colours="{ " # this will be a list of colours for each row of the image
     for x in range(w):
-        left=left_image.get(x,y).strip().split()# this gets the colour of the (x,y) pixel in the left image
-        right=right_image.get(x,y).strip().split()# this gets the colour of the (x,y) pixel in the right image
+        left = []
+        for x in left_image.get(x,y):
+            left.append(x)
+        right = []
+        for x in right_image.get(x,y):
+            right.append(x)
+#        left=left_image.get(x,y).strip().split()# this gets the colour of the (x,y) pixel in the left image
+#        right=right_image.get(x,y).strip().split()# this gets the colour of the (x,y) pixel in the right image
         row_colours=row_colours+'#%02x%02x%02x' % (int(left[0]),int(right[1]),int(right[2]))+' ' # this combines the red from the left and the green and blue from the right
     row_colours=row_colours+"} "
     pixel_grid=pixel_grid+row_colours # add the row of colours to our grid   

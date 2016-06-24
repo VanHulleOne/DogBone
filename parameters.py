@@ -16,14 +16,13 @@ import itertools
 import os
 import numpy as np
 import json
-import trimesh
 import Shape as s
 import Point as p
 
 class Parameters:
 
 
-    mesh = trimesh.load_mesh('Arch3.stl')
+
 
     """
     Part Parameters
@@ -45,8 +44,7 @@ class Parameters:
     infillAngleDegrees = [0, -45, 90, 45, 45, 90, -45] #degrees infill angle 90 is in Y direction 0 is in X direction
     pathWidth = [0.5] #mm distance between centerline of paths
     layerHeight = [0.4] #mm height per layer
-    bounds = mesh.bounds[:,2:]
-    numLayers = [int((bounds[1]//layerH)[0]) for layerH in layerHeight]
+
     infillShiftX = [0]
     infillShiftY = [0]
     #flipLayer = [0] No longer implimented
@@ -105,10 +103,9 @@ class Parameters:
                                             numShells layerHeight pathWidth trimAdjust')            
         self._layerParameters = self.LayerParams(self.infillShiftX, self.infillShiftY, self.infillAngleDegrees, self.numShells,
                        self.layerHeight, self.pathWidth, self.trimAdjust)
-        self.PartParams = namedtuple('PartParams', 'solidityRatio printSpeed shiftX shiftY numLayers')
+        self.PartParams = namedtuple('PartParams', 'solidityRatio printSpeed shiftX shiftY')
         self.everyPartsParameters = self.zipVariables_gen(self.PartParams(
-                              self.solidityRatio, self.printSpeed, self.shiftX, self.shiftY,
-                              self.numLayers))                        
+                              self.solidityRatio, self.printSpeed, self.shiftX, self.shiftY))                        
         
     def zipVariables_gen(self, inputLists, repeat=False):
         if iter(inputLists) is iter(inputLists):
