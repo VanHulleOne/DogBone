@@ -70,18 +70,18 @@ edges = (
 #    edges.append()
     
 def Cube():
-    x=0
-    glBegin(GL_QUADS)
-    for line in data:
-        
-        for point in line:
-            glColor3fv((x,x,0))
-            glVertex3fv(point)
-            num = 1.0/len(data)
-            x += num
-            
-    glEnd()
-    
+#    x=0
+#    glBegin(GL_QUADS)
+#    for line in data:
+#        
+#        for point in line:
+#            glColor3fv((x,x,0))
+#            glVertex3fv(point)
+#            num = 1.0/len(data)
+#            x += num
+#            
+#    glEnd()
+#    
     glBegin(GL_LINES)
 #    for edge in edges:
 #        print('line')
@@ -115,31 +115,31 @@ def main():
                 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    glTranslatef(-15,0,0)
+                    glTranslatef(-10,0,0)
                 if event.key == pygame.K_RIGHT:
-                    glTranslatef(15,0,0)
+                    glTranslatef(10,0,0)
                 if event.key == pygame.K_UP:
-                    glTranslatef(0,15,0)
+                    glTranslatef(0,10,0)
                 if event.key == pygame.K_DOWN:
-                    glTranslatef(0,-15,0)
+                    glTranslatef(0,-10,0)
                 if event.key == pygame.K_a:
-                    glRotatef(15,0,1,0)
+                    glRotatef(10,0,1,0)
                 if event.key == pygame.K_d:
-                    glRotatef(-15,0,1,0)
+                    glRotatef(-10,0,1,0)
                 if event.key == pygame.K_w:
-                    glRotatef(15,1,0,0)
+                    glRotatef(10,1,0,0)
                 if event.key == pygame.K_s:
-                    glRotatef(-15,1,0,0)
+                    glRotatef(-10,1,0,0)
                 if event.key == pygame.K_q:
-                    glRotatef(15,0,0,1)
+                    glRotatef(10,0,0,1)
                 if event.key == pygame.K_e:
-                    glRotatef(-15,0,0,1)
+                    glRotatef(-10,0,0,1)
                     
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:
-                    glTranslatef(0,0,15.0)
+                    glTranslatef(0,0,10.0)
                 if event.button == 5:
-                    glTranslatef(0,0,-15.0)
+                    glTranslatef(0,0,-10.0)
         
         glRotatef(0,0,0,0)        
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
