@@ -70,6 +70,18 @@ edges = (
 #    edges.append()
     
 def Cube():
+    x=0
+    glBegin(GL_QUADS)
+    for line in data:
+        
+        for point in line:
+            glColor3fv((x,x,0))
+            glVertex3fv(point)
+            num = 1.0/len(data)
+            x += num
+            
+    glEnd()
+    
     glBegin(GL_LINES)
 #    for edge in edges:
 #        print('line')
@@ -79,7 +91,8 @@ def Cube():
     for line in data:
 #        print('line')
         for point in line:
-            glVertex3f(point[0], point[1], point[2])
+            
+            glVertex3fv(point)
 #            print(point)
     glEnd()
     
@@ -92,7 +105,7 @@ def main():
     
     glTranslatef(-112.0,-40.0, -500)
     
-    glRotatef(0, 0, 1, 0)
+    glRotatef(0, 0, 0, 0)
     
     while True:
         for event in pygame.event.get():
