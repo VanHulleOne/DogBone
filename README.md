@@ -6,9 +6,12 @@ this program was to allow the user to independently adjust as many printing
 parameters as possible for the purpose of researching and characterizing each
 parameter's effect on a part's properties.
 
-Version 1 can only produce single profile parts (parts which can be extruded).
-Version 2 can also tool path STL files. Through the parameters.py module the user
-can a large group of printing parameters. Most parameters can be adjusted for each
+Version 1 can only toolpath single profile parts (parts which can be extruded).
+[Version 2](https://github.com/VanHulleOne/DogBoneV2)
+can also toolpath STL files.
+
+Through the parameters.py module you can adjust a large group of printing parameters.
+Most parameters can be adjusted for each
 individual layer. The program contains some methods to make it easier to print
 multiple parts.
 
@@ -19,7 +22,7 @@ NumPy
 After downloading the zip file and extracting it in an appropriate location either
 open the parameters.py file in your preferred Python IDE or with a text editor
 (I prefer Notepad++)*. The user adjustable printing parameters are broken into
-five section:<br/>
+five sections:<br/>
 * [Part](#part-parameters)<br/>
 * [Layer](#layer-parameters)<br/>
 * [File](#file-parameters)<br/>
@@ -54,7 +57,7 @@ Solidity ratio is used to calculate the extrusion rate for each layer.<br/>
 
 #### Print Speed mm/min
 Print speed is how fast in millimeters per minute the print head moves while printing.
-It seems most slicing software uses mm/sec but the G-code it send to the printer
+It seems most slicing software uses mm/sec but the G-code the slicing software sends to the printer
 is still defined in mm/min so that is the default I have chosen.
 
 #### Shift X and Shift Y
@@ -62,17 +65,17 @@ To print multiple parts without them attempting to occupy the same space you
 must use Shift X and Shift Y. These shifts are absolute shifts (they are not relative
 to the previous shift). Since it does not make sense to have two parts printed in the
 same location at least one of these two parameters should be the longest list of
-part parameters and determine how many parts are printed.
+part parameters and therefore will determine how many parts are printed.
 
 #### Number of Layers
-How many layers are printed in the part. They layer parameters are continuously
+How many layers are printed in the part. The layer parameters are continuously
 cycled until this number is reached for the part being printed. They are then reset
 for the next part.
 
 ### Pattern and Design Type
 Custom infill patterns can be designed for the part. The pattern must be of
 type LineGroup. The pattern is extended by copying the design and then
-connecting the start of the first line in the copy the end of the last of
+connecting the start of the first line in the copy to the end of the last of
 the original and saving that as the new original. This process is repeated
 until the design is sufficiently longer than the outline. This whole new
 line group is then copied and translated in Y by `pathWidth` until a full
@@ -122,8 +125,9 @@ your pattern.
 The number of shells you want around the part. Shells are created by a
 normal offset `pathWidth` away from the previous shell/outline. Version 1
 of the program does not handle shells very well. When two non-adjacent lines
-cross it pretty much blows up. Sometimes is gets mad even when that doesn't happen.
-Later versions of the program use Shapely to fix this problem. Keep in mind that
+cross (like when the gage section of a dogbone tensile specimen crosses before the grips are fully filled)
+it pretty much blows up. Sometimes is gets mad even when that doesn't happen.
+Version 2 of this program uses Shapely to fix this problem. Keep in mind that
 to tool path the infill properly a trim shell is created by the program. For example
 if three shells are prescribed a fourth trim shell is created inside the third 
 shell to properly trim the infill. If this extra trim shell has problems, Explosion.
